@@ -1,10 +1,20 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { app } from "../app";
+import request from "supertest";
 
-let mongo: any;
+declare global {
+  namespace NodeJS {
+    interface Global {
+      signup(): Promise<string[]>;
+    }
+  }
+}
+
+let mongo: MongoMemoryServer;
 
 beforeAll(async () => {
+  process.env.JWT_KEY = "asdf";
   mongo = new MongoMemoryServer();
   const mongoUri = await mongo.getUri();
 
@@ -23,6 +33,22 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-  await mongo.stop();
   await mongoose.connection.close();
+  await mongo.stop();
 });
+
+global.signup = async () => {
+  const email = "test@mail.com";
+  const password = "password";
+
+  const response = await request(app)
+    .post("/api/users/signup")
+    .send({
+      email,
+      password,
+    })
+    .expect(201);
+
+  const cookie = response.get("Set-Cookie");
+  return cookie;
+};
