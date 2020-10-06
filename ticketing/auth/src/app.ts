@@ -8,8 +8,7 @@ import { signoutRouter } from "./routes/signout";
 import { signupRouter } from "./routes/signup";
 import { signinRouter } from "./routes/signin";
 
-import { errorHandler } from "./middlewares/error-handler";
-import { NotFoundError } from "./errors/not-found-error";
+import { errorHandler, NotFoundError } from "@llticketing/common";
 
 const app = express();
 app.set("trust proxy", true);
