@@ -17,12 +17,12 @@ it("can fetch a list of tickets", async () => {
     },
   ];
 
-  ticketData.forEach(async ({ title, price }) => {
+  for (const { title, price } of ticketData) {
     await request(app)
       .post("/api/tickets")
       .set("Cookie", global.signin())
       .send({ title, price });
-  });
+  }
 
   const response = await request(app).get("/api/tickets").send();
   expect(response.status).toEqual(200);
