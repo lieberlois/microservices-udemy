@@ -1,6 +1,7 @@
 import request from "supertest";
 import { app } from "../../app";
 import mongoose from "mongoose";
+import { natsWrapper } from "../../nats-wrapper";
 
 it("can only be accessed if the user is signed in", async () => {
   const id = new mongoose.Types.ObjectId().toHexString();
@@ -111,4 +112,29 @@ it("updates the ticket with valid inputs", async () => {
 
   expect(response.body.title).toEqual(newTitle);
   expect(response.body.price).toEqual(newPrice);
+});
+
+it("publishes an event", async () => {
+  const cookie = global.signin();
+  const title = "Titel";
+  const price = 20;
+  const ticketResponse = await request(app)
+    .post("/api/tickets")
+    .set("Cookie", cookie)
+    .send({
+      title: title,
+      price: price,
+    })
+    .expect(201);
+
+  await request(app)
+    .put(`/api/tickets/${ticketResponse.body.id}`)
+    .set("Cookie", cookie)
+    .send({
+      title: "New Title",
+      price: 50,
+    })
+    .expect(200);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalledTimes(2);
 });
